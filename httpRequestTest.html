@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>请求测试页面</title>
+    <style>
+        button {
+            margin: 10px;
+            padding: 10px;
+        }
+
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .editable {
+            border: none;
+            background-color: transparent;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <button id="getButton">GET 请求</button>
+    <button id="postButton">POST 请求</button>
+    <button id="putButton">PUT 请求</button>
+    <button id="submitButton" >提交修改</button>
+    <button id="sendPathButton">发送路径</button>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('getButton').addEventListener('click', () => {
+            makeRequest('GET', 'https://jsonplaceholder.typicode.com/posts/1');
+        });
+
+        document.getElementById('postButton').addEventListener('click', () => {
+            makeRequest('POST', 'https://jsonplaceholder.typicode.com/posts', { title: 'foo', body: 'bar', userId: 1 });
+        });
+
+        document.getElementById('putButton').addEventListener('click', () => {
+            makeRequest('PUT', 'https://jsonplaceholder.typicode.com/posts/1', { id: 1, title: 'foo', body: 'bar', userId: 1 });
+        });
+
+        document.getElementById('submitButton').addEventListener('click', () => {
+            const modifiedData = collectData();
+            makeRequest('POST', 'https://jsonplaceholder.typicode.com/posts', modifiedData);
+        });
+
+        document.getElementById('sendPathButton').addEventListener('click', () => {
+            const filePath = 'C:\\nginx-1.23.0\\html\\DEM\\0\\0\\0.terrain';
+
+            fetch('your-backend-endpoint-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ path: filePath })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('Network response was not ok.');
+                })
+                .then(data => console.log('Success:', data))
+                .catch(error => console.error('Error:', error));
+        });
+
+        function makeRequest(method, url, data = null) {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method, url, true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    displayData(JSON.parse(xhr.responseText));
+                } else {
+                    document.getElementById('result').innerText = `错误: ${xhr.status}`;
+                }
+            };
+            xhr.onerror = function () {
+                document.getElementById('result').innerText = '请求失败';
+            };
+            xhr.send(data ? JSON.stringify(data) : null);
+        }
+
+        function displayData(data) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ''; // 清空之前的内容
+
+            const table = document.createElement('table');
+            for (const key in data) {
+                const tr = document.createElement('tr');
+                const th = document.createElement('th');
+                th.textContent = key;
+                const td = document.createElement('td');
+                const input = document.createElement('input');
+                input.setAttribute('type', 'text');
+                input.className = 'editable';
+                input.value = data[key];
+                input.dataset.key = key; // 用于标记输入字段对应的键名
+                td.appendChild(input);
+                tr.appendChild(th);
+                tr.appendChild(td);
+                table.appendChild(tr);
+            }
+            resultDiv.appendChild(table);
+            document.getElementById('submitButton').style.display = 'inline-block';
+        }
+
+        function collectData() {
+            const inputs = document.querySelectorAll('.editable');
+            const data = {};
+            inputs.forEach(input => {
+                data[input.dataset.key] = input.value;
+            });
+            return data;
+        }
+
+   
+    </script>
+</body>
+</html>
